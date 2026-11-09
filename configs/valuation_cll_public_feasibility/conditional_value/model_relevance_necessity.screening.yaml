@@ -1,0 +1,61 @@
+schema_version: model-relevance-necessity-screening-v1
+purpose: determine_whether_model_state_is_needed_in_valuation_and_or_sampling
+
+scope:
+  minimum_batch_count: 8
+  minimum_model_count: 2
+  sampling_fractions: [0.10, 0.20, 0.30, 0.40]
+  seeds: [17, 31, 42, 73, 101]
+  minimum_probe_variants_per_audit_rule: 2
+
+arms:
+  - arm_id: A0_no_model_value
+    sampling: data_benchmark_probability_sample
+    target_model_measured_on_sample: false
+  - arm_id: A1_model_in_value_only
+    sampling: data_benchmark_probability_sample
+    target_model_measured_on_sample: true
+  - arm_id: A2_model_adaptive_sampling
+    sampling: two_stage_model_adaptive_probability_sample
+    target_model_measured_on_sample: true
+  - arm_id: A3_wrong_model_negative_control
+    sampling: two_stage_wrong_model_adaptive_probability_sample
+    target_model_measured_on_sample: true
+  - arm_id: A4_gap_only_explanatory_control
+    sampling: select_only_predicted_gaps
+    target_model_measured_on_sample: true
+
+identifiability_gates:
+  require_real_model_profiles: true
+  require_disjoint_rule_audit: true
+  require_locked_benchmark_isolation: true
+  require_equal_total_probe_budget: true
+  require_known_inclusion_probabilities_for_estimators: true
+
+primary_metrics:
+  - batch_value_mae
+  - spearman_batch_rank
+  - top_k_selection_accuracy
+  - selection_regret
+
+secondary_metrics:
+  - kendall_batch_rank
+  - cross_model_rank_adaptation
+  - probe_call_count
+  - realized_sample_fraction
+
+primary_contrasts:
+  - contrast_id: model_needed_for_value
+    treatment_arm: A1_model_in_value_only
+    control_arm: A0_no_model_value
+  - contrast_id: model_needed_for_sampling
+    treatment_arm: A2_model_adaptive_sampling
+    control_arm: A1_model_in_value_only
+  - contrast_id: true_model_specificity
+    treatment_arm: A2_model_adaptive_sampling
+    control_arm: A3_wrong_model_negative_control
+
+claim_boundary:
+  screening_only: true
+  training_utility_requires_separate_confirmation: true
+  gap_only_arm_is_not_a_representative_batch_estimator: true

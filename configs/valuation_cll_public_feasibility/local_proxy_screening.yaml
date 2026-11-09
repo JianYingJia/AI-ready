@@ -1,0 +1,39 @@
+schema_version: local-proxy-screening-v1
+artifact_role: local_screening_not_formal_confirmation
+
+# This experiment deliberately uses the locally cached formal base model, but
+# it is not the preregistered 252-trial experiment: one training seed and a
+# 4-bit runtime are used so the comparison can run on a 16 GB workstation GPU.
+model_name: Qwen/Qwen2.5-7B-Instruct
+model_path: D:/models/Qwen2.5-7B-Instruct-a09a35458c70
+model_revision: a09a35458c702b33eeacc393d103063234e8bc28
+source_sft_root: outputs/cll_local_sft_qwen2_5_1_5b_full_20260921
+benchmark_path: data/private/valuation_cll/benchmark_locked/medmcqa_cll_proxy_v1.jsonl
+
+selection_token_budget: 1000
+selection_seed: 101
+methods:
+  - coverage_quality
+  - coverage_only
+  - random
+  - stratified_random
+  - relevance
+  - diversity
+include_full_pool_reference: true
+
+training_seed: 17
+num_train_epochs: 1
+learning_rate: 2.0e-5
+max_length: 512
+gradient_accumulation_steps: 4
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+evaluation_batch_size: 8
+
+quantization:
+  load_in_4bit: true
+  quant_type: nf4
+  compute_dtype: float16
+  use_double_quant: true
+

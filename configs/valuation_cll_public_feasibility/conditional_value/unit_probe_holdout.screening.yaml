@@ -1,0 +1,7 @@
+split_mode: within_pair_items
+seed: 20260929
+minimum_distinct_items_per_pair: 2
+# Screening thresholds are fixed before reading the holdout result.  They are
+# descriptive gates for the next measurement round, not confirmatory claims.
+minimum_positive_advantage_fraction: 0.50
+minimum_median_advantage: 0.0

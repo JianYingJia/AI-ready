@@ -1,0 +1,7 @@
+schema_version: natural-batch-audit-config-v1
+minimum_natural_batch_count: 8
+minimum_independent_lineage_count: 8
+maximum_batches_per_lineage: 1
+forbid_source_overlap_between_natural_batches: true
+forbid_lineage_overlap_with_constructed_batches: true
+forbid_pairing_between_natural_batches: true

@@ -1,0 +1,6 @@
+profile_id: qwen2.5-7b-cll-capability-m0-nf4-v1
+benchmark_id: medmcqa-cll-proxy-v1
+model_id: Qwen/Qwen2.5-7B-Instruct
+model_revision: a09a35458c702b33eeacc393d103063234e8bc28
+checkpoint_sha256: 0cb11cccfab5ee0938c9da77abe59f06aed3e82243d58d2c4e6778658d369aad
+probe_set_id: cll-independent-capability-probes-v1

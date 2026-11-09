@@ -1,0 +1,6 @@
+split_mode: disjoint_unit_cells
+seed: 20260929
+minimum_distinct_items_per_pair: 2
+# Descriptive screening gates fixed before the disjoint-unit result is read.
+minimum_positive_advantage_fraction: 0.50
+minimum_median_advantage: 0.0

@@ -1,0 +1,333 @@
+# Stage-ablation execution template.
+#
+# This file is intentionally NOT runnable as committed. Replace every
+# <REPLACE_...> value with a preregistered value and freeze the referenced
+# artifacts before loading it as AblationExecutionSpec. SHA-256 fields accept
+# only 64 lowercase hexadecimal characters. Local checkpoint/calibration files
+# are re-hashed during materialization and a mismatch is rejected.
+#
+# Scope: the 32 same-generator SFT cells that ablation_data.py can materialize.
+# A1 structured_mining/fixed_chunks are no-SFT audits. A9 fom_operational_full
+# is produced by the independent Fully Open Meditron workflow and is therefore
+# deliberately absent from this execution specification.
+
+schema_version: stage-ablation-execution-v1
+execution_id: cll-stage-ablation-<REPLACE_WITH_FROZEN_EXECUTION_VERSION>
+protocol_sha256: <REPLACE_WITH_STAGE_ABLATION_PROTOCOL_SHA256>
+suite_sha256: <REPLACE_WITH_FROZEN_BATCH_SUITE_SHA256>
+contract_sha256: <REPLACE_WITH_PRODUCTION_CONTRACT_SHA256>
+training_seeds: [17, 29, 43]
+
+# task_weighted_v1 must come from the benchmark capability blueprint without
+# reading test questions during selection. shuffled_weights_seed_101 must be a
+# preregistered permutation of exactly those task weights. The placeholders are
+# strings on purpose, so Pydantic rejects the template until real positive
+# numeric weights have been supplied.
+capability_profiles:
+- profile_id: task_weighted_v1
+  weights:
+    diagnosis_and_differential: <REPLACE_WITH_POSITIVE_TASK_WEIGHT>
+    pathology_and_immunophenotype: <REPLACE_WITH_POSITIVE_TASK_WEIGHT>
+    complications: <REPLACE_WITH_POSITIVE_TASK_WEIGHT>
+    prognosis_and_transformation: <REPLACE_WITH_POSITIVE_TASK_WEIGHT>
+    treatment_indication: <REPLACE_WITH_POSITIVE_TASK_WEIGHT>
+    treatment_selection: <REPLACE_WITH_POSITIVE_TASK_WEIGHT>
+- profile_id: uniform_weights
+  weights:
+    diagnosis_and_differential: 1.0
+    pathology_and_immunophenotype: 1.0
+    complications: 1.0
+    prognosis_and_transformation: 1.0
+    treatment_indication: 1.0
+    treatment_selection: 1.0
+- profile_id: shuffled_weights_seed_101
+  weights:
+    diagnosis_and_differential: <REPLACE_WITH_PERMUTED_TASK_WEIGHT>
+    pathology_and_immunophenotype: <REPLACE_WITH_PERMUTED_TASK_WEIGHT>
+    complications: <REPLACE_WITH_PERMUTED_TASK_WEIGHT>
+    prognosis_and_transformation: <REPLACE_WITH_PERMUTED_TASK_WEIGHT>
+    treatment_indication: <REPLACE_WITH_PERMUTED_TASK_WEIGHT>
+    treatment_selection: <REPLACE_WITH_PERMUTED_TASK_WEIGHT>
+
+# Every profile denotes a real model state. checkpoint_sha256 and
+# calibration_sha256 must hash the exact bound artifacts. capability_scores
+# are independently measured calibration scores in [0, 1], not experiment
+# outcomes. Do not derive them from the ablation benchmark observations.
+model_profiles:
+- profile_id: native
+  model_id: Qwen/Qwen2.5-7B-Instruct
+  revision: <REPLACE_WITH_IMMUTABLE_MODEL_REVISION>
+  checkpoint_uri: <REPLACE_WITH_NATIVE_CHECKPOINT_OR_MANIFEST_URI>
+  checkpoint_sha256: <REPLACE_WITH_NATIVE_CHECKPOINT_OR_MANIFEST_SHA256>
+  calibration_uri: <REPLACE_WITH_NATIVE_CALIBRATION_JSON_URI>
+  calibration_sha256: <REPLACE_WITH_NATIVE_CALIBRATION_JSON_SHA256>
+  capability_scores:
+    diagnosis_and_differential: <REPLACE_WITH_CALIBRATION_SCORE_0_TO_1>
+    pathology_and_immunophenotype: <REPLACE_WITH_CALIBRATION_SCORE_0_TO_1>
+    complications: <REPLACE_WITH_CALIBRATION_SCORE_0_TO_1>
+    prognosis_and_transformation: <REPLACE_WITH_CALIBRATION_SCORE_0_TO_1>
+    treatment_indication: <REPLACE_WITH_CALIBRATION_SCORE_0_TO_1>
+    treatment_selection: <REPLACE_WITH_CALIBRATION_SCORE_0_TO_1>
+  minimum_gap: 0.05
+- profile_id: controlled_low_prior
+  model_id: Qwen/Qwen2.5-7B-Instruct
+  revision: <REPLACE_WITH_LOW_PRIOR_IMMUTABLE_REVISION>
+  checkpoint_uri: <REPLACE_WITH_LOW_PRIOR_CHECKPOINT_OR_MANIFEST_URI>
+  checkpoint_sha256: <REPLACE_WITH_LOW_PRIOR_CHECKPOINT_OR_MANIFEST_SHA256>
+  calibration_uri: <REPLACE_WITH_LOW_PRIOR_CALIBRATION_JSON_URI>
+  calibration_sha256: <REPLACE_WITH_LOW_PRIOR_CALIBRATION_JSON_SHA256>
+  capability_scores:
+    diagnosis_and_differential: <REPLACE_WITH_LOW_PRIOR_SCORE_0_TO_1>
+    pathology_and_immunophenotype: <REPLACE_WITH_LOW_PRIOR_SCORE_0_TO_1>
+    complications: <REPLACE_WITH_LOW_PRIOR_SCORE_0_TO_1>
+    prognosis_and_transformation: <REPLACE_WITH_LOW_PRIOR_SCORE_0_TO_1>
+    treatment_indication: <REPLACE_WITH_LOW_PRIOR_SCORE_0_TO_1>
+    treatment_selection: <REPLACE_WITH_LOW_PRIOR_SCORE_0_TO_1>
+  minimum_gap: 0.05
+- profile_id: controlled_high_prior
+  model_id: Qwen/Qwen2.5-7B-Instruct
+  revision: <REPLACE_WITH_HIGH_PRIOR_IMMUTABLE_REVISION>
+  checkpoint_uri: <REPLACE_WITH_HIGH_PRIOR_CHECKPOINT_OR_MANIFEST_URI>
+  checkpoint_sha256: <REPLACE_WITH_HIGH_PRIOR_CHECKPOINT_OR_MANIFEST_SHA256>
+  calibration_uri: <REPLACE_WITH_HIGH_PRIOR_CALIBRATION_JSON_URI>
+  calibration_sha256: <REPLACE_WITH_HIGH_PRIOR_CALIBRATION_JSON_SHA256>
+  capability_scores:
+    diagnosis_and_differential: <REPLACE_WITH_HIGH_PRIOR_SCORE_0_TO_1>
+    pathology_and_immunophenotype: <REPLACE_WITH_HIGH_PRIOR_SCORE_0_TO_1>
+    complications: <REPLACE_WITH_HIGH_PRIOR_SCORE_0_TO_1>
+    prognosis_and_transformation: <REPLACE_WITH_HIGH_PRIOR_SCORE_0_TO_1>
+    treatment_indication: <REPLACE_WITH_HIGH_PRIOR_SCORE_0_TO_1>
+    treatment_selection: <REPLACE_WITH_HIGH_PRIOR_SCORE_0_TO_1>
+  minimum_gap: 0.05
+
+default_model_profile_id: native
+
+# YAML anchors only remove repetition in this template. After YAML loading,
+# every cell contains the complete strict Pydantic payload and is independently
+# included in the execution digest.
+cells:
+- &base_coverage_cell
+  study_id: A2_blueprint_conditioning
+  cell_id: task_blueprint
+  kind: selection
+  capability_profile_id: task_weighted_v1
+  selector_config: &coverage_quality_selector
+    method: coverage_quality
+    token_budget: 100000
+    random_state: 42
+    facility_weight: 1.0
+    obligation_weight: 1.5
+    quality_fidelity_weight: 1.0
+    source_coverage_weight: 0.5
+  source_budget_fraction: 0.25
+  selection_mode: direct
+  organization: mixed
+  organization_seed: 101
+  intervention_id: null
+  intervention_mode: none
+  repetition_factor: 1
+  label_noise_rate: 0.0
+  label_noise_seed: 101
+  model_profile_id: null
+  prior_aware: false
+  match_exposure_to_cell_id: null
+- <<: *base_coverage_cell
+  study_id: A2_blueprint_conditioning
+  cell_id: uniform_blueprint
+  capability_profile_id: uniform_weights
+- <<: *base_coverage_cell
+  study_id: A2_blueprint_conditioning
+  cell_id: shuffled_blueprint
+  capability_profile_id: shuffled_weights_seed_101
+
+- <<: *base_coverage_cell
+  study_id: A3_subset_selection
+  cell_id: coverage_quality_25
+- <<: *base_coverage_cell
+  study_id: A3_subset_selection
+  cell_id: coverage_only_25
+  selector_config: &coverage_only_selector
+    method: coverage_only
+    token_budget: 100000
+    random_state: 42
+    facility_weight: 1.0
+    obligation_weight: 1.5
+    quality_fidelity_weight: 0.0
+    source_coverage_weight: 0.5
+- <<: *base_coverage_cell
+  study_id: A3_subset_selection
+  cell_id: stratified_random_25
+  selector_config: &stratified_random_selector
+    method: stratified_random
+    token_budget: 100000
+    random_state: 101
+    facility_weight: 1.0
+    obligation_weight: 1.0
+    quality_fidelity_weight: 1.0
+    source_coverage_weight: 0.5
+- <<: *base_coverage_cell
+  study_id: A3_subset_selection
+  cell_id: random_25
+  selector_config: &random_selector
+    method: random
+    token_budget: 100000
+    random_state: 101
+    facility_weight: 1.0
+    obligation_weight: 1.0
+    quality_fidelity_weight: 1.0
+    source_coverage_weight: 0.5
+- <<: *base_coverage_cell
+  study_id: A3_subset_selection
+  cell_id: same_generator_full
+  source_budget_fraction: 1.0
+
+- <<: *base_coverage_cell
+  study_id: A4_quality_fidelity
+  cell_id: quality_fidelity_on
+  kind: quality_fidelity
+- <<: *base_coverage_cell
+  study_id: A4_quality_fidelity
+  cell_id: quality_fidelity_off
+  kind: quality_fidelity
+  selector_config: *coverage_only_selector
+
+- <<: *base_coverage_cell
+  study_id: A5_supervision_organization
+  cell_id: mixed_grounded
+  kind: organization
+  organization: mixed
+- <<: *base_coverage_cell
+  study_id: A5_supervision_organization
+  cell_id: direct_qa_only
+  kind: organization
+  organization: direct
+- <<: *base_coverage_cell
+  study_id: A5_supervision_organization
+  cell_id: random_form
+  kind: organization
+  organization: random
+  organization_seed: 101
+
+# Replace the same intervention ID in these three cells and in every batch
+# input. Its RuleInterventionSpec must bind real, disjoint, token-matched target
+# and replacement dependency groups before materialization.
+- <<: *base_coverage_cell
+  study_id: A6_learnability_bridge
+  cell_id: include_target_rule
+  kind: learnability
+  intervention_id: <REPLACE_WITH_PREREGISTERED_INTERVENTION_ID>
+  intervention_mode: include
+- <<: *base_coverage_cell
+  study_id: A6_learnability_bridge
+  cell_id: knockout_target_rule
+  kind: learnability
+  intervention_id: <REPLACE_WITH_PREREGISTERED_INTERVENTION_ID>
+  intervention_mode: knockout
+- <<: *base_coverage_cell
+  study_id: A6_learnability_bridge
+  cell_id: rescue_target_rule
+  kind: learnability
+  intervention_id: <REPLACE_WITH_PREREGISTERED_INTERVENTION_ID>
+  intervention_mode: rescue
+
+- <<: *base_coverage_cell
+  study_id: A7a_scale_curve
+  cell_id: unique_25
+  kind: robustness
+  source_budget_fraction: 0.25
+  selection_mode: nested
+- <<: *base_coverage_cell
+  study_id: A7a_scale_curve
+  cell_id: unique_50
+  kind: robustness
+  source_budget_fraction: 0.5
+  selection_mode: nested
+- <<: *base_coverage_cell
+  study_id: A7a_scale_curve
+  cell_id: unique_100
+  kind: robustness
+  source_budget_fraction: 1.0
+  selection_mode: nested
+
+- <<: *base_coverage_cell
+  study_id: A7b_repeat_sensitivity
+  cell_id: unique_exposure
+  kind: robustness
+  source_budget_fraction: 1.0
+  repetition_factor: 1
+- <<: *base_coverage_cell
+  study_id: A7b_repeat_sensitivity
+  cell_id: repeated_exposure
+  kind: robustness
+  source_budget_fraction: 0.5
+  repetition_factor: 2
+  match_exposure_to_cell_id: unique_exposure
+
+- <<: *base_coverage_cell
+  study_id: A7c_noise_sensitivity
+  cell_id: clean_labels
+  kind: robustness
+  source_budget_fraction: 0.25
+  label_noise_rate: 0.0
+- <<: *base_coverage_cell
+  study_id: A7c_noise_sensitivity
+  cell_id: label_noise_10
+  kind: robustness
+  source_budget_fraction: 0.25
+  label_noise_rate: 0.1
+- <<: *base_coverage_cell
+  study_id: A7c_noise_sensitivity
+  cell_id: label_noise_30
+  kind: robustness
+  source_budget_fraction: 0.25
+  label_noise_rate: 0.3
+- <<: *base_coverage_cell
+  study_id: A7c_noise_sensitivity
+  cell_id: full_clean_labels
+  kind: robustness
+  source_budget_fraction: 1.0
+  label_noise_rate: 0.0
+- <<: *base_coverage_cell
+  study_id: A7c_noise_sensitivity
+  cell_id: full_label_noise_10
+  kind: robustness
+  source_budget_fraction: 1.0
+  label_noise_rate: 0.1
+- <<: *base_coverage_cell
+  study_id: A7c_noise_sensitivity
+  cell_id: full_label_noise_30
+  kind: robustness
+  source_budget_fraction: 1.0
+  label_noise_rate: 0.3
+
+- <<: *base_coverage_cell
+  study_id: A8_base_model_prior
+  cell_id: low_prior_aware
+  kind: base_model_prior
+  model_profile_id: controlled_low_prior
+  prior_aware: true
+- <<: *base_coverage_cell
+  study_id: A8_base_model_prior
+  cell_id: low_prior_agnostic
+  kind: base_model_prior
+  model_profile_id: controlled_low_prior
+  prior_aware: false
+- <<: *base_coverage_cell
+  study_id: A8_base_model_prior
+  cell_id: high_prior_aware
+  kind: base_model_prior
+  model_profile_id: controlled_high_prior
+  prior_aware: true
+- <<: *base_coverage_cell
+  study_id: A8_base_model_prior
+  cell_id: high_prior_agnostic
+  kind: base_model_prior
+  model_profile_id: controlled_high_prior
+  prior_aware: false
+
+# This is only the cheap proxy side of A9. The FOM full-data result is imported
+# from its independent external run and never materialized by this file.
+- <<: *base_coverage_cell
+  study_id: A9_operational_fom_prediction
+  cell_id: coverage_proxy
+  kind: selection

@@ -1,0 +1,41 @@
+schema_version: static-baseline-config-v2
+enabled_baselines:
+  - token_count
+  - unique_token_count
+  - information_density
+  - benchmark_relevance
+  - low_redundancy
+  - llm_judge_score
+  - intrinsic_static
+  - task_aware_static
+# Both composites are frozen before observing full-training utility.  Their
+# only difference is the task-conditioned relevance signal.
+named_composites:
+  intrinsic_static:
+    unique_token_count: 1.0
+    mean_quality: 1.0
+    information_density: 1.0
+    low_redundancy: 1.0
+    llm_judge_score: 1.0
+  task_aware_static:
+    unique_token_count: 1.0
+    mean_quality: 1.0
+    information_density: 1.0
+    benchmark_relevance: 1.0
+    low_redundancy: 1.0
+    llm_judge_score: 1.0
+# Retained for backward-compatible replay of the original composite baseline.
+composite_weights:
+  unique_token_count: 1.0
+  mean_quality: 1.0
+  information_density: 1.0
+  benchmark_relevance: 1.0
+  low_redundancy: 1.0
+top_ks: [1, 3]
+# Select the ten pairs that task-aware static scoring itself finds hardest to
+# separate, then test whether proxy training recovers their full-training order.
+hard_pair_baseline: task_aware_static
+hard_pair_count: 10
+# Task A has 46 locked accuracy items, so one raw item corresponds to 1/46.
+# Keep this identical to feasibility_protocol.yaml and the manuscript.
+indifference_margin: 0.0217

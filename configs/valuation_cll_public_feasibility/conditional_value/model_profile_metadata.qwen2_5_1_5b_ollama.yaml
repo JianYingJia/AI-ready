@@ -1,0 +1,6 @@
+profile_id: qwen2.5-1.5b-cll-capability-m0-ollama-q4km-v1
+benchmark_id: medmcqa-cll-proxy-v1
+model_id: qwen2.5:1.5b-instruct
+model_revision: 65ec06548149b04c096a120e4a6da9d4017ea809c91734ea5631e89f96ddc57b
+checkpoint_sha256: 65ec06548149b04c096a120e4a6da9d4017ea809c91734ea5631e89f96ddc57b
+probe_set_id: cll-independent-capability-probes-v1

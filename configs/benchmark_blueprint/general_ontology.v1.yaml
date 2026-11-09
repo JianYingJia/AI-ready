@@ -1,0 +1,92 @@
+schema_version: benchmark-upper-ontology-v1
+ontology_id: general-benchmark-upper-ontology-v1
+
+knowledge_domains:
+  - label_id: mathematics_statistics
+    description: Mathematics, formal quantitative methods, probability, and statistics.
+  - label_id: natural_sciences
+    description: Physical, chemical, biological, earth, and environmental sciences.
+  - label_id: medicine_health
+    description: Biomedical knowledge, clinical reasoning, public health, and healthcare.
+  - label_id: computer_science
+    description: Computing concepts, algorithms, software, data, and artificial intelligence.
+  - label_id: engineering_technology
+    description: Engineering analysis, design, manufacturing, and applied technology.
+  - label_id: social_sciences
+    description: Psychology, sociology, political science, education, and related social inquiry.
+  - label_id: humanities
+    description: History, philosophy, language, literature, arts, and cultural studies.
+  - label_id: law_policy
+    description: Legal doctrine, regulation, governance, and public policy.
+  - label_id: business_economics
+    description: Economics, finance, accounting, management, and business practice.
+  - label_id: general_cross_domain
+    description: General knowledge or an item whose solution substantively spans multiple domains.
+
+capabilities:
+  - label_id: knowledge_recall
+    description: Retrieve a fact, definition, formula, or established rule.
+  - label_id: concept_understanding
+    description: Explain, interpret, or recognize the meaning of a concept.
+  - label_id: comparison_classification
+    description: Compare alternatives, distinguish categories, or assign a case to a class.
+  - label_id: information_synthesis
+    description: Combine evidence from multiple statements, sources, or representations.
+  - label_id: quantitative_reasoning
+    description: Apply numerical, algebraic, probabilistic, or statistical reasoning.
+  - label_id: logical_reasoning
+    description: Apply formal or informal deduction, induction, or consistency reasoning.
+  - label_id: causal_reasoning
+    description: Identify, evaluate, or apply causal relations and mechanisms.
+  - label_id: temporal_reasoning
+    description: Reason about ordering, duration, change, or time-dependent validity.
+  - label_id: conditional_reasoning
+    description: Apply prerequisites, exceptions, prohibitions, or conditional rules.
+  - label_id: multi_step_reasoning
+    description: Execute two or more dependent reasoning steps before producing the answer.
+  - label_id: decision_making
+    description: Select an action or alternative under explicit goals and constraints.
+  - label_id: planning
+    description: Construct or sequence actions to achieve a stated objective.
+  - label_id: content_generation
+    description: Produce an extended answer, explanation, transformation, or creative artifact.
+  - label_id: tool_use
+    description: Select or operate an external tool, environment, or information source.
+
+problem_structures:
+  - label_id: single_hop
+    description: The answer follows from one direct fact, rule, or inference.
+  - label_id: multi_hop
+    description: The answer requires combining multiple dependent facts or inferences.
+  - label_id: condition
+    description: Correctness depends on an explicit prerequisite or applicability condition.
+  - label_id: exception
+    description: Correctness depends on an exception, prohibition, contraindication, or override.
+  - label_id: temporal
+    description: The item contains a time-dependent rule, sequence, or changing state.
+  - label_id: causal
+    description: The item asks about a cause, effect, mechanism, or intervention consequence.
+  - label_id: numerical
+    description: The item requires numerical information or calculation.
+  - label_id: constraint_satisfaction
+    description: The response must satisfy multiple simultaneous constraints.
+  - label_id: retrieval_required
+    description: The task explicitly requires locating information outside the presented context.
+  - label_id: multimodal
+    description: The item requires interpreting more than one modality.
+  - label_id: tool_interaction
+    description: The task requires interaction with a tool or executable environment.
+
+response_types:
+  - label_id: multiple_choice
+    description: Select one or more options from a fixed list.
+  - label_id: short_answer
+    description: Produce a brief free-form answer.
+  - label_id: long_form
+    description: Produce an extended explanation, report, or argument.
+  - label_id: structured_output
+    description: Produce JSON, a table, fields, or another constrained structure.
+  - label_id: code
+    description: Produce or modify executable code.
+  - label_id: interactive_action
+    description: Take a sequence of actions in an environment.

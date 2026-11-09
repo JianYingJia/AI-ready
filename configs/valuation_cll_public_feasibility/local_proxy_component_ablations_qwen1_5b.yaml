@@ -1,0 +1,41 @@
+schema_version: local-proxy-screening-v1
+artifact_role: component_ablations_qwen1_5b
+
+model_name: Qwen/Qwen2.5-1.5B-Instruct
+model_path: D:/models/Qwen2.5-1.5B-Instruct
+model_revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306
+source_sft_root: outputs/cll_local_sft_qwen2_5_1_5b_full_20260921
+benchmark_path: data/private/valuation_cll/benchmark_locked/medmcqa_cll_proxy_v1.jsonl
+
+selection_token_budget: 1000
+adaptive_selection_token_budgets: [1000, 2000, 5000, 10000, 25000, 100000]
+selection_seed: 101
+methods:
+  - no_dependency_grouping
+  - no_source_coverage
+include_full_pool_reference: false
+
+matched_effective_supervised_tokens: 256
+fixed_optimizer_steps: 4
+training_seed: 17
+num_train_epochs: 1
+learning_rate: 2.0e-5
+max_length: 512
+training_micro_batch_size: 4
+gradient_accumulation_steps: 1
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+evaluation_batch_size: 8
+
+content_static_weights:
+  facility: 1.0
+  obligation: 1.5
+  quality_fidelity: 1.0
+  source_coverage: 0.5
+
+quantization:
+  load_in_4bit: true
+  quant_type: nf4
+  compute_dtype: float16
+  use_double_quant: true

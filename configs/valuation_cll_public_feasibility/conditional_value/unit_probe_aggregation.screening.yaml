@@ -1,0 +1,7 @@
+tau_low: 0.35
+tau_high: 0.75
+confidence_level: 0.95
+bootstrap_iterations: 2000
+seed: 42
+minimum_probe_count: 1
+scoring_method: sparse_rule_probe_screening_v1

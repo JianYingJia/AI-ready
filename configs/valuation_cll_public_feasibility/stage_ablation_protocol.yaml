@@ -1,0 +1,1095 @@
+schema_version: stage-ablation-protocol-v1
+protocol_id: cll-small-sample-stage-ablation-screening-v2
+inference_scope: descriptive_mechanism_screening
+locked_before_results: true
+benchmark_test_items_accessible_to_generation: false
+fully_open_meditron_role: operational_external_reference_only
+multiplicity_correction: bonferroni
+
+# This protocol is the four-lineage screening design.  A confirmation protocol
+# must be frozen separately after adding held-out natural source lineages.
+studies:
+- study_id: A1_semantic_mining
+  stage: semantic_mining
+  phase: screening
+  evidence_role: static_mechanism
+  target: Recover evidence-bound rules, conditions, exceptions, and dependency groups from source documents.
+  causal_interpretation: true
+  isolated_factors: [mining]
+  cells:
+  - cell_id: structured_mining
+    description: Objective rule-family mining with source spans and condition/exception links.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: not_applied
+      selector: not_applied
+      organization: not_applied
+      source_budget_fraction: 1.0
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: not_applied
+      prior_profile: not_applied
+      training_mode: no_sft
+      generator: audit_only
+  - cell_id: fixed_chunks
+    description: Fixed source chunks without explicit rule-family or exception linkage.
+    factors:
+      mining: fixed_chunks
+      blueprint: not_applied
+      selector: not_applied
+      organization: not_applied
+      source_budget_fraction: 1.0
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: not_applied
+      prior_profile: not_applied
+      training_mode: no_sft
+      generator: audit_only
+  cell_gates:
+  - gate_id: mining_condition_exception_recall
+    cell_id: structured_mining
+    metric: condition_exception_recall
+    direction: at_least
+    threshold: 0.90
+    independence_key: lineage_group
+    minimum_observations: 8
+    minimum_independent_units: 4
+    multiplicity_family: mining_primary
+    primary: true
+    rationale: Conditions and exceptions are the most important information lost by naive chunking.
+  - gate_id: mining_unsupported_rate
+    cell_id: structured_mining
+    metric: unsupported_medical_assertion_rate
+    direction: at_most
+    threshold: 0.02
+    independence_key: lineage_group
+    minimum_observations: 8
+    minimum_independent_units: 4
+    multiplicity_family: mining_primary
+    primary: true
+    rationale: Objective mining must remain bound to source evidence.
+  contrasts:
+  - contrast_id: mining_recall_over_chunks
+    treatment_cell_id: structured_mining
+    control_cell_id: fixed_chunks
+    metric: dependency_group_recall
+    pairing_keys: [batch_id]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.05
+    minimum_pairs: 8
+    minimum_independent_units: 4
+    multiplicity_family: mining_primary
+    primary: true
+    rationale: Structured mining should recover more complete rule families than fixed chunks.
+
+- study_id: A2_blueprint_conditioning
+  stage: blueprint_conditioning
+  phase: screening
+  evidence_role: training_mechanism
+  target: Make a test-item-free capability blueprint directionally control what enters the small sample.
+  causal_interpretation: true
+  isolated_factors: [blueprint]
+  cells:
+  - cell_id: task_blueprint
+    description: Use a preregistered non-uniform task blueprint.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: uniform_blueprint
+    description: Give every capability equal weight.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: uniform_weights
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: shuffled_blueprint
+    description: Permute capability weights as a negative control.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: shuffled_weights_seed_101
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  cell_gates:
+  - gate_id: blueprint_mapping_macro_f1
+    cell_id: task_blueprint
+    metric: capability_mapping_macro_f1
+    direction: at_least
+    threshold: 0.85
+    independence_key: lineage_group
+    minimum_observations: 8
+    minimum_independent_units: 4
+    multiplicity_family: blueprint_primary
+    primary: true
+    rationale: Blueprint conditioning is uninterpretable if source units are mapped to the wrong capability.
+  contrasts:
+  - contrast_id: blueprint_alignment_over_uniform
+    treatment_cell_id: task_blueprint
+    control_cell_id: uniform_blueprint
+    metric: blueprint_alignment_score
+    pairing_keys: [batch_id]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.05
+    minimum_pairs: 8
+    minimum_independent_units: 4
+    multiplicity_family: blueprint_primary
+    primary: true
+    rationale: A non-uniform user task must cause a directional change in selected capability mass.
+  - contrast_id: blueprint_alignment_over_shuffle
+    treatment_cell_id: task_blueprint
+    control_cell_id: shuffled_blueprint
+    metric: target_capability_probe_gain
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: blueprint_secondary
+    primary: false
+    rationale: The correctly aligned blueprint should outperform an intentionally wrong task signal.
+
+- study_id: A3_subset_selection
+  stage: subset_selection
+  phase: screening
+  evidence_role: training_mechanism
+  target: Preserve critical knowledge and training utility under a strict source-side subset budget.
+  causal_interpretation: true
+  isolated_factors: [selector, source_budget_fraction]
+  cells:
+  - cell_id: coverage_quality_25
+    description: Main coverage and quality selector at a strict 25 percent source budget.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: coverage_only_25
+    description: Remove quality-distribution fidelity from the selector.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_only
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: stratified_random_25
+    description: Source and quality stratified random selection at the same budget.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: stratified_random_seed_set
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: random_25
+    description: Uniform random selection at the same budget.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: random_seed_set
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: same_generator_full
+    description: Coverage generator processes every eligible candidate group; this is the causal full-data comparator.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: full_candidate_pool
+      organization: mixed_grounded_v1
+      source_budget_fraction: 1.0
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  cell_gates:
+  - gate_id: selector_weighted_coverage
+    cell_id: coverage_quality_25
+    metric: weighted_obligation_coverage
+    direction: at_least
+    threshold: 0.90
+    independence_key: lineage_group
+    minimum_observations: 8
+    minimum_independent_units: 4
+    multiplicity_family: selection_primary
+    primary: true
+    rationale: The strict subset must retain nearly all preregistered weighted obligations.
+  - gate_id: selector_condition_exception_coverage
+    cell_id: coverage_quality_25
+    metric: condition_exception_coverage
+    direction: at_least
+    threshold: 0.90
+    independence_key: lineage_group
+    minimum_observations: 8
+    minimum_independent_units: 4
+    multiplicity_family: selection_primary
+    primary: true
+    rationale: Conditions and exceptions cannot be sacrificed to reach a small budget.
+  contrasts:
+  - contrast_id: selector_noninferior_to_same_generator_full
+    treatment_cell_id: coverage_quality_25
+    control_cell_id: same_generator_full
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: noninferior
+    noninferiority_margin: 0.0435
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: selection_primary
+    primary: true
+    rationale: Only one-sided shortfall matters; a small sample that exceeds the full comparator must not fail.
+  - contrast_id: selector_facility_over_stratified
+    treatment_cell_id: coverage_quality_25
+    control_cell_id: stratified_random_25
+    metric: semantic_facility
+    pairing_keys: [batch_id]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 8
+    minimum_independent_units: 4
+    multiplicity_family: selection_secondary
+    primary: false
+    rationale: The main selector should improve semantic representation over a simple distribution-preserving sample.
+  - contrast_id: selector_utility_over_random
+    treatment_cell_id: coverage_quality_25
+    control_cell_id: random_25
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: selection_secondary
+    primary: false
+    rationale: Training utility should improve over uniform random selection at equal source budget.
+
+- study_id: A4_quality_fidelity
+  stage: subset_selection
+  phase: screening
+  evidence_role: training_mechanism
+  target: Preserve the full batch quality distribution instead of selecting only easy clean content.
+  causal_interpretation: true
+  isolated_factors: [selector]
+  cells:
+  - cell_id: quality_fidelity_on
+    description: Coverage selector with quality-distribution fidelity enabled.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: quality_fidelity_off
+    description: Identical selector with the quality fidelity term removed.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_only
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  cell_gates:
+  - gate_id: quality_absolute_distribution_similarity
+    cell_id: quality_fidelity_on
+    metric: quality_distribution_similarity
+    direction: at_least
+    threshold: 0.90
+    independence_key: lineage_group
+    minimum_observations: 8
+    minimum_independent_units: 4
+    multiplicity_family: quality_primary
+    primary: true
+    rationale: Relative improvement is insufficient if both cells remain far from the full batch distribution.
+  - gate_id: quality_acceptance_rate_error
+    cell_id: quality_fidelity_on
+    metric: acceptance_rate_absolute_error
+    direction: at_most
+    threshold: 0.05
+    independence_key: lineage_group
+    minimum_observations: 8
+    minimum_independent_units: 4
+    multiplicity_family: quality_primary
+    primary: true
+    rationale: The small sample must estimate the usable yield of the full batch within a practical error bound.
+  contrasts:
+  - contrast_id: quality_distribution_fidelity
+    treatment_cell_id: quality_fidelity_on
+    control_cell_id: quality_fidelity_off
+    metric: quality_distribution_similarity
+    pairing_keys: [batch_id]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.05
+    minimum_pairs: 8
+    minimum_independent_units: 4
+    multiplicity_family: quality_primary
+    primary: true
+    rationale: Mixed-quality batches must make the quality term observably different from coverage-only selection.
+
+- study_id: A5_supervision_organization
+  stage: supervision_organization
+  phase: screening
+  evidence_role: training_mechanism
+  target: Turn the same selected facts into supervision that transfers across unseen forms.
+  causal_interpretation: true
+  isolated_factors: [organization]
+  cells:
+  - cell_id: mixed_grounded
+    description: Balanced grounded QA, conditional judgment, and clinical vignette organization.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: direct_qa_only
+    description: Express every selected fact as direct grounded QA.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: direct_qa_only
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: random_form
+    description: Randomly assign one supervision form while holding content and assistant-label budget fixed.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: random_form_seed_101
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  cell_gates: []
+  contrasts:
+  - contrast_id: organization_cross_form_transfer
+    treatment_cell_id: mixed_grounded
+    control_cell_id: direct_qa_only
+    metric: cross_form_probe_gain
+    pairing_keys: [batch_id, seed, capability_id]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: organization_primary
+    primary: true
+    rationale: A useful organization mechanism must transfer beyond the exact training question format.
+  - contrast_id: organization_over_random
+    treatment_cell_id: mixed_grounded
+    control_cell_id: random_form
+    metric: cross_form_probe_gain
+    pairing_keys: [batch_id, seed, capability_id]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: organization_secondary
+    primary: false
+    rationale: Structured organization should outperform chance assignment of supervision form.
+
+- study_id: A6_learnability_bridge
+  stage: learnability_bridge
+  phase: screening
+  evidence_role: training_mechanism
+  target: Establish the covered-content to learned-capability link with knockout and rescue interventions.
+  causal_interpretation: true
+  isolated_factors: [selector]
+  cells:
+  - cell_id: include_target_rule
+    description: Include the target rule family in the selected SFT.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_include_target
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: knockout_target_rule
+    description: Remove the target rule family and fill the budget with matched non-target rules.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_knockout_target
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: rescue_target_rule
+    description: Restore the target rule family after knockout while keeping all other content fixed.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_rescue_target
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  cell_gates: []
+  contrasts:
+  - contrast_id: learnability_knockout_effect
+    treatment_cell_id: include_target_rule
+    control_cell_id: knockout_target_rule
+    metric: target_minus_nontarget_probe_gain
+    pairing_keys: [batch_id, seed, capability_id]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: learnability_primary
+    primary: true
+    rationale: Covered target content should cause a larger target-specific gain than matched uncovered content.
+  - contrast_id: learnability_rescue_effect
+    treatment_cell_id: rescue_target_rule
+    control_cell_id: knockout_target_rule
+    metric: target_minus_nontarget_probe_gain
+    pairing_keys: [batch_id, seed, capability_id]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: learnability_primary
+    primary: true
+    rationale: Restoring the removed rule should restore the corresponding behavior.
+  - contrast_id: learnability_rescue_matches_include
+    treatment_cell_id: rescue_target_rule
+    control_cell_id: include_target_rule
+    metric: target_minus_nontarget_probe_gain
+    pairing_keys: [batch_id, seed, capability_id]
+    independence_key: lineage_group
+    direction: equivalent
+    equivalence_margin: 0.0217
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: learnability_primary
+    primary: true
+    rationale: A rescue supports restoration only when it returns to the original include condition within a frozen bound.
+
+- study_id: A7a_scale_curve
+  stage: scale_repeat_noise
+  phase: screening
+  evidence_role: robustness
+  target: Measure the gain curve as unique source coverage increases through nested subsets.
+  causal_interpretation: true
+  isolated_factors: [source_budget_fraction]
+  cells:
+  - cell_id: unique_25
+    description: Nested 25 percent unique-content subset.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_nested
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: unique_50
+    description: Nested 50 percent unique-content subset.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_nested
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.50
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: unique_100
+    description: Full unique candidate pool with the same generator.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_nested
+      organization: mixed_grounded_v1
+      source_budget_fraction: 1.0
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  cell_gates: []
+  contrasts:
+  - contrast_id: scale_100_over_25
+    treatment_cell_id: unique_100
+    control_cell_id: unique_25
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: scale_primary
+    primary: true
+    rationale: More unique eligible knowledge should not produce a lower mean gain than the smallest nested subset.
+  - contrast_id: scale_50_over_25
+    treatment_cell_id: unique_50
+    control_cell_id: unique_25
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: scale_secondary
+    primary: false
+    rationale: The intermediate point diagnoses the shape of the learning curve.
+  - contrast_id: scale_25_noninferior_to_full
+    treatment_cell_id: unique_25
+    control_cell_id: unique_100
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: noninferior
+    noninferiority_margin: 0.0435
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: scale_secondary
+    primary: false
+    rationale: Absolute utility retention is an additional one-sided target; ranking remains the primary valuation goal.
+
+- study_id: A7b_repeat_sensitivity
+  stage: scale_repeat_noise
+  phase: screening
+  evidence_role: robustness
+  target: Separate unique information from repeated exposure at a matched training budget.
+  causal_interpretation: true
+  isolated_factors: [repetition_factor]
+  cells:
+  - cell_id: unique_exposure
+    description: Use unique rule families within the fixed assistant-label budget.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.50
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: repeated_exposure
+    description: Replace unique slots with exact repeats while matching total assistant-label tokens and steps.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.50
+      repetition_factor: 3.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  cell_gates: []
+  contrasts:
+  - contrast_id: unique_over_repeated
+    treatment_cell_id: unique_exposure
+    control_cell_id: repeated_exposure
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: repeat_primary
+    primary: true
+    rationale: Additional unique rules should provide more value than repeated copies at matched optimization exposure.
+
+- study_id: A7c_noise_sensitivity
+  stage: scale_repeat_noise
+  phase: screening
+  evidence_role: robustness
+  target: Recover the direction and dose response of one explicitly controlled noise type.
+  causal_interpretation: true
+  isolated_factors: [source_budget_fraction, noise_kind, noise_rate]
+  cells:
+  - cell_id: clean_labels
+    description: Clean supervision labels.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: label_noise_10
+    description: Flip or corrupt exactly 10 percent of eligible supervision labels after the quality gate.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: label_corruption
+      noise_rate: 0.10
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: label_noise_30
+    description: Flip or corrupt exactly 30 percent of eligible supervision labels after the quality gate.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: label_corruption
+      noise_rate: 0.30
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: full_clean_labels
+    description: Clean supervision over the complete same-generator candidate pool.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 1.0
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: full_label_noise_10
+    description: Apply the same 10 percent nested corruption to the complete same-generator candidate pool.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 1.0
+      repetition_factor: 1.0
+      noise_kind: label_corruption
+      noise_rate: 0.10
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: full_label_noise_30
+    description: Apply the same 30 percent nested corruption to the complete same-generator candidate pool.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 1.0
+      repetition_factor: 1.0
+      noise_kind: label_corruption
+      noise_rate: 0.30
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  cell_gates: []
+  contrasts:
+  - contrast_id: clean_over_noise_30
+    treatment_cell_id: clean_labels
+    control_cell_id: label_noise_30
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: noise_primary
+    primary: true
+    rationale: Strong label corruption should reduce training utility when content and exposure stay fixed.
+  - contrast_id: clean_over_noise_10
+    treatment_cell_id: clean_labels
+    control_cell_id: label_noise_10
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: noise_secondary
+    primary: false
+    rationale: The lower noise point estimates the dose-response curve.
+  interactions:
+  - contrast_id: noise_response_small_matches_full_30
+    first_treatment_cell_id: clean_labels
+    first_control_cell_id: label_noise_30
+    second_treatment_cell_id: full_clean_labels
+    second_control_cell_id: full_label_noise_30
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: equivalent
+    equivalence_margin: 0.0435
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: noise_primary
+    primary: true
+    rationale: Small-sample sensitivity represents the full data only when the high-noise degradation is equivalent.
+  - contrast_id: noise_response_small_matches_full_10
+    first_treatment_cell_id: clean_labels
+    first_control_cell_id: label_noise_10
+    second_treatment_cell_id: full_clean_labels
+    second_control_cell_id: full_label_noise_10
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: equivalent
+    equivalence_margin: 0.0435
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: noise_secondary
+    primary: false
+    rationale: The low-noise point checks whether the two dose-response curves stay aligned.
+
+- study_id: A8_base_model_prior
+  stage: base_model_prior
+  phase: screening
+  evidence_role: training_mechanism
+  target: Test whether independently measured model gaps change data value and whether prior-aware selection helps.
+  causal_interpretation: true
+  isolated_factors: [selector, prior_profile]
+  cells:
+  - cell_id: low_prior_aware
+    description: Prior-aware selection for a preregistered low-prior checkpoint of the same model family.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_prior_aware
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: controlled_low_prior
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: low_prior_agnostic
+    description: Ignore the measured gap for the same low-prior checkpoint.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_no_prior
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: controlled_low_prior
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: high_prior_aware
+    description: Prior-aware selection for a preregistered high-prior checkpoint of the same model family.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_prior_aware
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: controlled_high_prior
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: high_prior_agnostic
+    description: Ignore the measured gap for the same high-prior checkpoint.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality_no_prior
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: controlled_high_prior
+      training_mode: sft
+      generator: coverage_guided_sft
+  cell_gates:
+  - gate_id: prior_gap_selection_alignment
+    cell_id: low_prior_aware
+    metric: prior_gap_selection_alignment
+    direction: at_least
+    threshold: 0.30
+    independence_key: lineage_group
+    minimum_observations: 8
+    minimum_independent_units: 4
+    multiplicity_family: prior_primary
+    primary: true
+    rationale: Selection must move toward independently measured capability gaps before utility is interpreted.
+  contrasts:
+  - contrast_id: prior_aware_low_state
+    treatment_cell_id: low_prior_aware
+    control_cell_id: low_prior_agnostic
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: prior_primary
+    primary: true
+    rationale: Prior conditioning should improve utility for a state with known capability gaps.
+  - contrast_id: prior_aware_high_state
+    treatment_cell_id: high_prior_aware
+    control_cell_id: high_prior_agnostic
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: prior_secondary
+    primary: false
+    rationale: Report the same model-internal comparison in the high-prior state.
+  interactions:
+  - contrast_id: prior_state_interaction
+    first_treatment_cell_id: low_prior_aware
+    first_control_cell_id: low_prior_agnostic
+    second_treatment_cell_id: high_prior_aware
+    second_control_cell_id: high_prior_agnostic
+    metric: training_utility
+    pairing_keys: [batch_id, seed]
+    independence_key: lineage_group
+    direction: higher
+    minimum_effect: 0.0
+    minimum_pairs: 24
+    minimum_independent_units: 4
+    multiplicity_family: prior_primary
+    primary: true
+    rationale: The benefit of prior-aware selection should be larger in the preregistered low-prior state.
+
+- study_id: A9_operational_fom_prediction
+  stage: operational_external_validity
+  phase: screening
+  evidence_role: operational_prediction
+  target: Predict the batch ranking and selection decision of the independent Fully Open Meditron full-data workflow.
+  causal_interpretation: false
+  isolated_factors: [selector, source_budget_fraction, organization, generator]
+  cells:
+  - cell_id: coverage_proxy
+    description: Coverage-selected small sample generated by coverage_guided_sft.
+    factors:
+      mining: structured_rule_family_v1
+      blueprint: task_weighted_v1
+      selector: coverage_quality
+      organization: mixed_grounded_v1
+      source_budget_fraction: 0.25
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: coverage_guided_sft
+  - cell_id: fom_operational_full
+    description: Fully Open Meditron independently processes the complete frozen raw batch.
+    factors:
+      mining: fully_open_meditron_internal
+      blueprint: no_proxy_blueprint
+      selector: no_proxy_selector
+      organization: fully_open_meditron_recipe
+      source_budget_fraction: 1.0
+      repetition_factor: 1.0
+      noise_kind: none
+      noise_rate: 0.0
+      base_model: Qwen/Qwen2.5-7B-Instruct
+      prior_profile: native
+      training_mode: sft
+      generator: fully_open_meditron
+  cell_gates:
+  - gate_id: operational_spearman
+    cell_id: coverage_proxy
+    metric: leave_one_lineage_out_spearman_to_fom
+    direction: at_least
+    threshold: 0.60
+    independence_key: lineage_group
+    minimum_observations: 4
+    minimum_independent_units: 4
+    multiplicity_family: operational_primary
+    primary: true
+    rationale: The cheap workflow must recover the operational full-data ranking.
+  - gate_id: operational_pairwise_accuracy
+    cell_id: coverage_proxy
+    metric: leave_one_lineage_out_pairwise_accuracy_to_fom
+    direction: at_least
+    threshold: 0.70
+    independence_key: lineage_group
+    minimum_observations: 4
+    minimum_independent_units: 4
+    multiplicity_family: operational_primary
+    primary: true
+    rationale: Practically distinguishable batch pairs should usually be ordered correctly.
+  - gate_id: operational_top1_regret
+    cell_id: coverage_proxy
+    metric: leave_one_lineage_out_top1_regret_to_fom
+    direction: at_most
+    threshold: 0.0435
+    independence_key: lineage_group
+    minimum_observations: 4
+    minimum_independent_units: 4
+    multiplicity_family: operational_primary
+    primary: true
+    rationale: The selected batch should remain within about two benchmark items of the operational optimum.
+  - gate_id: operational_low_value_promotion
+    cell_id: coverage_proxy
+    metric: leave_one_lineage_out_low_value_promotion_rate_to_fom
+    direction: at_most
+    threshold: 0.20
+    independence_key: lineage_group
+    minimum_observations: 4
+    minimum_independent_units: 4
+    multiplicity_family: operational_primary
+    primary: true
+    rationale: A screening proxy must rarely promote an operationally low-value batch into the selected set.
+  contrasts: []

@@ -1,0 +1,260 @@
+schema_version: batch-suite-v1
+suite_id: cll-public-proxy-feasibility-12
+domain: CLL/SLL foundational clinical knowledge; public feasibility proxy
+benchmark_id: medmcqa-cll-proxy-v1
+intended_claim: feasibility_and_method_screening
+statistical_unit: batch
+capability_blueprint_uri: capability_blueprint.yaml
+capability_blueprint_sha256: 00f9dc90d8d6e4cf5cc79e81515ced97f1660cee387635c7d6337d5f2dd885e3
+capability_blueprint:
+- diagnosis_and_differential
+- pathology_and_immunophenotype
+- complications
+- prognosis_and_transformation
+- treatment_indication
+- treatment_selection
+sources:
+- source_id: nci_cll_professional
+  title: Chronic Lymphocytic Leukemia Treatment (PDQ) - Health Professional Version
+  uri: https://www.cancer.gov/types/leukemia/hp/cll-treatment-pdq
+  version: updated-2025-04-25_snapshot-2026-09-13
+  language: en
+  license_status: allowed
+  allowed_uses:
+  - research
+  - model-training
+  content_sha256: 1bf271a24a8e3ebe9692ee5c70d0b51bce5415b26cebf64f46f59393fff0d014
+  knowledge_cutoff: '2025-04-25'
+- source_id: nci_cll_patient
+  title: Chronic Lymphocytic Leukemia Treatment (PDQ) - Patient Version
+  uri: https://www.cancer.gov/types/leukemia/patient/cll-treatment-pdq
+  version: updated-2024-10-15_snapshot-2026-09-13
+  language: en
+  license_status: allowed
+  allowed_uses:
+  - research
+  - model-training
+  content_sha256: 0e13561a8539590c85a651cb5e217f39eb9b022eab5d533f2009f43b08284afa
+  knowledge_cutoff: '2024-10-15'
+- source_id: nci_aml_professional
+  title: Acute Myeloid Leukemia Treatment (PDQ) - Health Professional Version
+  uri: https://www.cancer.gov/types/leukemia/hp/adult-aml-treatment-pdq
+  version: updated-2025-03-14_snapshot-2026-09-13
+  language: en
+  license_status: allowed
+  allowed_uses:
+  - research
+  - model-training
+  content_sha256: 34fd1fb9f30a06b79415d02c9e1ed422ade2f4bc02b2c78ec5acbb31f3ab7575
+  knowledge_cutoff: '2025-03-14'
+- source_id: nci_cml_professional
+  title: Chronic Myeloid Leukemia Treatment (PDQ) - Health Professional Version
+  uri: https://www.cancer.gov/types/leukemia/hp/cml-treatment-pdq
+  version: updated-2025-03-13_snapshot-2026-09-13
+  language: en
+  license_status: allowed
+  allowed_uses:
+  - research
+  - model-training
+  content_sha256: 309c7159c4d42fbbde2ec8342077c40e5bd58b2f0dd7489c4bb7824cc1a8f819
+  knowledge_cutoff: '2025-03-13'
+- source_id: pmc11171037
+  title: Treatment Sequencing in Chronic Lymphocytic Leukemia in 2024
+  uri: https://pmc.ncbi.nlm.nih.gov/articles/PMC11171037/
+  version: PMCID-PMC11171037_2024
+  language: en
+  license_status: allowed
+  allowed_uses:
+  - research
+  - model-training
+  content_sha256: b31bf6701b02feebb3b51f1713d2c95521331cea12fa0ce617a028e79997707a
+  knowledge_cutoff: '2024-06-01'
+- source_id: pmc11505876
+  title: Recent Advances in the Molecular Biology of Chronic Lymphocytic Leukemia
+  uri: https://pmc.ncbi.nlm.nih.gov/articles/PMC11505876/
+  version: PMCID-PMC11505876_2024
+  language: en
+  license_status: allowed
+  allowed_uses:
+  - research
+  - model-training
+  content_sha256: 43a8a3b34485f4f8846dd1363e5abd5087e7c7eef1b48a6dac180df4b7c49fd4
+  knowledge_cutoff: '2024-10-14'
+batches:
+- batch_id: B01
+  kind: factorial
+  split: development
+  input_uri: ../../data/acquired/valuation_cll/batches/B01
+  source_ids:
+  - nci_cll_professional
+  lineage_group: controlled_pool
+  factors:
+    coverage_scope: broad
+    target_relevance: high
+    redundancy: low
+    parsing_quality: clean
+  construction_notes:
+  - Six CLL capability units; no intentional duplication.
+- batch_id: B02
+  kind: factorial
+  split: development
+  input_uri: ../../data/acquired/valuation_cll/batches/B02
+  source_ids:
+  - nci_cll_professional
+  lineage_group: controlled_pool
+  factors:
+    coverage_scope: broad
+    target_relevance: high
+    redundancy: high
+    parsing_quality: clean
+  construction_notes:
+  - The same six complete CLL units copied three times.
+- batch_id: B03
+  kind: factorial
+  split: development
+  input_uri: ../../data/acquired/valuation_cll/batches/B03
+  source_ids:
+  - nci_aml_professional
+  - nci_cml_professional
+  lineage_group: controlled_pool
+  factors:
+    coverage_scope: broad
+    target_relevance: low
+    redundancy: low
+    parsing_quality: clean
+  construction_notes:
+  - Six size-matched AML/CML control units outside the CLL target.
+- batch_id: B04
+  kind: factorial
+  split: development
+  input_uri: ../../data/acquired/valuation_cll/batches/B04
+  source_ids:
+  - nci_aml_professional
+  - nci_cml_professional
+  lineage_group: controlled_pool
+  factors:
+    coverage_scope: broad
+    target_relevance: low
+    redundancy: high
+    parsing_quality: clean
+  construction_notes:
+  - The same six AML/CML control units copied three times.
+- batch_id: B05
+  kind: factorial
+  split: calibration
+  input_uri: ../../data/acquired/valuation_cll/batches/B05
+  source_ids:
+  - nci_cll_professional
+  lineage_group: controlled_pool
+  factors:
+    coverage_scope: narrow
+    target_relevance: high
+    redundancy: low
+    parsing_quality: clean
+  construction_notes:
+  - Two complete CLL capability groups retained.
+- batch_id: B06
+  kind: factorial
+  split: calibration
+  input_uri: ../../data/acquired/valuation_cll/batches/B06
+  source_ids:
+  - nci_cll_professional
+  lineage_group: controlled_pool
+  factors:
+    coverage_scope: narrow
+    target_relevance: high
+    redundancy: high
+    parsing_quality: clean
+  construction_notes:
+  - The same two CLL capability groups copied three times.
+- batch_id: B07
+  kind: factorial
+  split: calibration
+  input_uri: ../../data/acquired/valuation_cll/batches/B07
+  source_ids:
+  - nci_aml_professional
+  - nci_cml_professional
+  lineage_group: controlled_pool
+  factors:
+    coverage_scope: narrow
+    target_relevance: low
+    redundancy: low
+    parsing_quality: clean
+  construction_notes:
+  - Two complete non-CLL leukemia control units retained.
+- batch_id: B08
+  kind: factorial
+  split: calibration
+  input_uri: ../../data/acquired/valuation_cll/batches/B08
+  source_ids:
+  - nci_aml_professional
+  - nci_cml_professional
+  lineage_group: controlled_pool
+  factors:
+    coverage_scope: narrow
+    target_relevance: low
+    redundancy: high
+    parsing_quality: clean
+  construction_notes:
+  - The same two non-CLL leukemia control units copied three times.
+- batch_id: B09
+  kind: natural_check
+  split: calibration
+  input_uri: ../../data/acquired/valuation_cll/batches/B09
+  source_ids:
+  - nci_cll_professional
+  lineage_group: natural_pair_09_10
+  factors:
+    coverage_scope: natural
+    target_relevance: unmeasured
+    redundancy: unmeasured
+    parsing_quality: clean
+  construction_notes:
+  - Clean text-only extraction of the NCI professional CLL summary.
+  paired_with:
+  - B10
+- batch_id: B10
+  kind: natural_check
+  split: calibration
+  input_uri: ../../data/acquired/valuation_cll/batches/B10
+  source_ids:
+  - nci_cll_professional
+  lineage_group: natural_pair_09_10
+  factors:
+    coverage_scope: natural
+    target_relevance: unmeasured
+    redundancy: unmeasured
+    parsing_quality: noisy
+  construction_notes:
+  - B09 semantic content with deterministic line-wrap, header, and table-flattening noise.
+  paired_with:
+  - B09
+- batch_id: B11
+  kind: natural_check
+  split: evaluation
+  input_uri: ../../data/acquired/valuation_cll/batches/B11
+  source_ids:
+  - pmc11171037
+  lineage_group: independent_pmc11171037
+  factors:
+    coverage_scope: natural
+    target_relevance: unmeasured
+    redundancy: unmeasured
+    parsing_quality: natural
+  construction_notes:
+  - Independent CC BY review focused on CLL treatment sequencing.
+- batch_id: B12
+  kind: natural_check
+  split: evaluation
+  input_uri: ../../data/acquired/valuation_cll/batches/B12
+  source_ids:
+  - nci_cll_patient
+  - pmc11505876
+  lineage_group: independent_mixed_12
+  factors:
+    coverage_scope: natural
+    target_relevance: unmeasured
+    redundancy: unmeasured
+    parsing_quality: natural
+  construction_notes:
+  - Natural mix of NCI patient material and an independent CC BY molecular review.

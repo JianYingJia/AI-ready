@@ -1,0 +1,7 @@
+method: coverage_quality
+token_budget: 100000
+random_state: 42
+facility_weight: 1.0
+obligation_weight: 1.5
+quality_fidelity_weight: 1.0
+source_coverage_weight: 0.5

@@ -1,0 +1,95 @@
+# All paths are relative to this file.
+input_dir: ../demos/documents
+output_dir: ../outputs/demo
+cache_dir: ../.cache
+
+parsing:
+  backend: auto
+  complex_pdf_backend: marker
+  marker_mode: fast
+  ocr: true
+  force_full_page_ocr: false
+  table_structure: true
+  continue_on_error: false
+  chunker: hybrid
+  max_tokens: 384
+  sliding_window_units: 0
+  sliding_window_stride: 1
+
+registry:
+  metadata_file: document_metadata.yaml
+  default_permissions: [research]
+  default_version: unversioned
+  simhash_max_distance: 3
+
+embedding:
+  model_name: BAAI/bge-small-zh-v1.5
+  family: bge
+  device: auto
+  batch_size: 16
+  max_seq_length: 512
+  query_instruction: '为这个句子生成表示以用于检索相关文章：'
+  local_files_only: false
+
+cleaning:
+  recipe: data_juicer/l1_clean.yaml
+  near_duplicates: true
+  minhash_threshold: 0.9
+  minhash_window: 5
+  minhash_permutations: 128
+
+clustering:
+  backend: bertopic
+  min_cluster_size: 3
+  min_samples: 2
+  n_neighbors: 10
+  n_components: 5
+  random_state: 42
+
+l2:
+  enabled: true
+  selection_budget: 20
+  selector: facility_location
+  random_state: 42
+  target_questions_per_cell: 1
+  difficulty_weights:
+    structure: 1.0
+    language: 1.0
+    knowledge_density: 1.0
+    dependency: 1.0
+    temporal: 1.0
+    ambiguity: 1.0
+  priority_weights:
+    uncovered: 1.0
+    document_coverage: 0.8
+    long_tail: 0.8
+    business: 1.0
+    risk: 1.2
+    routing_fit: 0.5
+    task_gap: 0.6
+    difficulty_gap: 0.6
+    redundancy: 0.7
+  target_task_mix:
+    factual_qa: 0.2
+    multi_turn: 0.15
+    summarization: 0.15
+    judgment: 0.2
+    comparison: 0.15
+    extraction: 0.15
+  target_difficulty_mix:
+    easy: 0.3
+    medium: 0.5
+    hard: 0.2
+  manual_topics:
+    - topic_id: manual-loan-rule-confusion
+      name: 商业贷款与公积金规则边界
+      keywords: [公积金, 不得直接套用]
+      business_weight: 1.5
+      risk_weight: 2.0
+
+storage:
+  parquet_compression: zstd
+  create_duckdb: true
+  create_snapshot: true
+  mlflow_enabled: true
+  mlflow_experiment: ai-ready-benchmark

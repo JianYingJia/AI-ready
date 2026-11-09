@@ -1,0 +1,113 @@
+schema_version: pilot-feasibility-protocol-v2
+protocol_id: cll-public-proxy-feasibility-pilot-v2
+inference_scope: descriptive_pilot_no_confirmatory_inference
+expected_benchmark_item_count: 46
+
+# 主方法不含随机步骤；selection_seed 留空是有意为之。
+target:
+  arm: proxy
+  label: coverage_quality
+  method: coverage_quality
+  budget_id: proxy-100k
+  # ProxyUnit.estimated_tokens 的选择预算；与下方实际 SFT assistant-label
+  # token 上限属于两个计量域，即使本轮都登记为 100000 也不能混用。
+  selection_token_budget: 100000
+  max_effective_train_tokens: 100000
+  selection_seed: null
+  selection_config_uri: proxy_selection/coverage_quality.yaml
+  selection_config_sha256: b7f4e232e127543116e8155714de581aadc5fe94b1bdbb275c56a68eedf0785f
+
+# random 和 stratified_random 的 101 是小样选择种子，不是训练种子。
+# 训练种子由 production_contract.yaml 统一冻结为 17、29、43。
+baselines:
+- arm: proxy
+  label: coverage_only
+  method: coverage_only
+  budget_id: proxy-100k
+  selection_token_budget: 100000
+  max_effective_train_tokens: 100000
+  selection_seed: null
+  selection_config_uri: proxy_selection/coverage_only.yaml
+  selection_config_sha256: d0e2a841450e975cee7037036a9041e9814f34b63be9b1d69369ad56bfe3548d
+- arm: proxy
+  label: stratified_random
+  method: stratified_random
+  budget_id: proxy-100k
+  selection_token_budget: 100000
+  max_effective_train_tokens: 100000
+  selection_seed: 101
+  selection_config_uri: proxy_selection/stratified_random.yaml
+  selection_config_sha256: 7d862e57226577964fe867bf3db7910b7051749bc13364a0a006eed09ac4c50f
+- arm: proxy
+  label: random
+  method: random
+  budget_id: proxy-100k
+  selection_token_budget: 100000
+  max_effective_train_tokens: 100000
+  selection_seed: 101
+  selection_config_uri: proxy_selection/random.yaml
+  selection_config_sha256: 569cf3a27c8a20b50f636f658976f7d617802a5bef013592320d4a8b640ec9d1
+- arm: proxy
+  label: relevance
+  method: relevance
+  budget_id: proxy-100k
+  selection_token_budget: 100000
+  max_effective_train_tokens: 100000
+  selection_seed: null
+  selection_config_uri: proxy_selection/relevance.yaml
+  selection_config_sha256: 8dbdad05d4be89f6fb6596b401d7ff2aa07c904a1be6a0f3e964a20eb6d5d1d9
+- arm: proxy
+  label: diversity
+  method: diversity
+  budget_id: proxy-100k
+  selection_token_budget: 100000
+  max_effective_train_tokens: 100000
+  selection_seed: null
+  selection_config_uri: proxy_selection/diversity.yaml
+  selection_config_sha256: b48bd82dc56dab4e1b58fd32e8976e1fa124f73e0673a53c2542dc0bc16e3d76
+
+reference:
+  arm: reference
+  label: operational_full
+  method: fully_open_meditron
+  budget_id: full-1m
+  selection_token_budget: null
+  max_effective_train_tokens: 1000000
+  selection_seed: null
+  selection_config_uri: null
+  selection_config_sha256: null
+
+# 46 道 accuracy 题中，一题约为 0.0217。以下是本探索性试验预注册的
+# 工程判定门槛，用于避免看完结果后改规则；它们不是统计学定律。
+reference_identifiability:
+  # 全量参考的最好/最差批次至少相差约三题。
+  min_utility_range: 0.065
+  # 批次均值的离散度至少约一题。
+  min_between_batch_sd: 0.020
+  # 批次内训练种子波动不得大于批次间信号。
+  max_within_to_between_sd_ratio: 1.0
+  # 三对训练种子排序的中位 Spearman 至少为中等正相关。
+  min_pairwise_seed_rank_spearman_median: 0.50
+  positive_margin: 0.0
+  min_clearly_positive_batch_count: 2
+  ci_separation_margin: 0.0
+  # 12 个批次共有 66 对，至少约 7 对的 95% CI 完全分离。
+  min_distinguishable_ci_pair_fraction: 0.10
+
+target_decision:
+  min_spearman: 0.60
+  min_kendall_tau_b: 0.45
+  min_pairwise_order_accuracy: 0.70
+  # 允许选中的 Top-1 比全量参考最优批次低约两题以内。
+  max_top1_regret: 0.0435
+  # 主方法对每个基线都要有至少 0.05 的 Spearman 优势，且 Top-1
+  # regret 不得更差；两项均需通过。
+  min_spearman_advantage_over_each_baseline: 0.05
+  max_top1_regret_excess_over_each_baseline: 0.0
+  require_leave_one_seed_out_stability: true
+
+# 全量参考批次效用差小于约一道题时，不强判顺序。
+indifference_margin: 0.0217
+
+# 当前 12 个批次只有 4 个 lineage group，分析会明确给出相关性警告。
+minimum_independent_lineage_count_for_warning: 8

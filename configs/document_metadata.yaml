@@ -1,0 +1,20 @@
+# Paths are relative to input_dir. In production, keep this catalog access-controlled.
+documents:
+  - path: 贷款规则_示例.md
+    logical_key: demo/loan-policy
+    title: 贷款规则（虚构测试数据）
+    version: '2026.1'
+    effective_from: '2026-01-01'
+    status: active
+    permissions: [research]
+    business_weight: 1.5
+    risk_weight: 1.8
+  - path: 信息系统_示例.md
+    logical_key: demo/information-system-policy
+    title: 信息系统规则（虚构测试数据）
+    version: '2026.1'
+    effective_from: '2026-01-01'
+    status: active
+    permissions: [research]
+    business_weight: 1.0
+    risk_weight: 1.2

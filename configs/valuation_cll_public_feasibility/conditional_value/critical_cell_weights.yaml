@@ -1,0 +1,9 @@
+# Exploratory placeholder: all six cells currently have equal weight. Replace
+# these values with preregistered Benchmark/clinical importance weights before
+# making a benchmark-sensitive or medical-risk-sensitive fidelity claim.
+diagnosis_and_differential: 1.0
+pathology_and_immunophenotype: 1.0
+complications: 1.0
+prognosis_and_transformation: 1.0
+treatment_indication: 1.0
+treatment_selection: 1.0

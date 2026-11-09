@@ -1,0 +1,5 @@
+profile_id: qwen2.5-7b-cll-m0-unit-cell-v1
+probe_set_id: cll-independent-unit-cell-probes-v1
+# Hash the frozen inference prompt, decoding settings, scoring rubric, scorer
+# revision, and any human-adjudication protocol together.
+scoring_protocol_sha256: <REPLACE_WITH_64_HEX_PROTOCOL_DIGEST>

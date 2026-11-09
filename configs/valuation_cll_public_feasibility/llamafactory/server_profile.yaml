@@ -1,0 +1,31 @@
+schema_version: llamafactory-server-profile-v1
+
+# 本实验的 token 统计逻辑逐行对应 v0.9.5；更换版本必须重新核对模板和预处理器。
+llamafactory_revision: v0.9.5
+template: qwen
+trust_remote_code: true
+
+# 一张 GPU 执行一个 trial。Slurm 数组负责并发不同 trial，避免一次训练跨卡后
+# 因 world size 变化而改变全局 batch size。
+world_size: 1
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8
+
+# packing 在每个 datasets.map worker/batch 内独立进行。单进程且 batch_size
+# 不小于最多 1,000,000 个监督 token 对应的样本数，使审计与实际装箱完全一致。
+preprocessing_num_workers: 1
+preprocessing_batch_size: 1000000
+dataloader_num_workers: 4
+bf16: true
+fp16: false
+gradient_checkpointing: true
+flash_attn: auto
+
+logging_steps: 1
+save_steps: 50
+save_total_limit: 2
+report_to: none
+
+# 单卡配置不启用 DeepSpeed。多卡实验必须建立新的 profile 和 Production Contract，
+# 不能临时修改本文件后继续使用原 experiment_id。
+deepspeed_config: null

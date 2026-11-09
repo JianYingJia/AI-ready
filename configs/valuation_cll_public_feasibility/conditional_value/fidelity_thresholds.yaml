@@ -1,0 +1,8 @@
+maximum_joint_total_variation: 0.15
+maximum_critical_weighted_total_variation: 0.15
+maximum_cell_marginal_total_variation: 0.10
+maximum_cell_proportion_error: 0.08
+maximum_mastery_marginal_total_variation: 0.10
+maximum_attribute_marginal_total_variation: 0.10
+maximum_ht_total_relative_error: 0.10
+minimum_effective_sample_size: 10

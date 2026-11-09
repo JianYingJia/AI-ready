@@ -1,0 +1,52 @@
+schema_version: local-proxy-screening-v1
+artifact_role: local_confirmation_matched_exposure
+
+model_name: Qwen/Qwen2.5-7B-Instruct
+model_path: D:/models/Qwen2.5-7B-Instruct-a09a35458c70
+model_revision: a09a35458c702b33eeacc393d103063234e8bc28
+source_sft_root: outputs/cll_local_sft_qwen2_5_1_5b_full_20260921
+benchmark_path: data/private/valuation_cll/benchmark_locked/medmcqa_cll_proxy_v1.jsonl
+
+# Increase the source-side budget only when a selector cannot supply the
+# preregistered 256 supervised tokens. The realized budget is recorded for
+# every batch and method.
+selection_token_budget: 1000
+adaptive_selection_token_budgets: [1000, 2000, 5000, 10000, 25000, 100000]
+selection_seed: 101
+methods:
+  - coverage_quality
+  - coverage_only
+  - random
+  - stratified_random
+  - relevance
+  - diversity
+include_full_pool_reference: true
+
+# Every proxy arm uses the same unique supervised-token count and the same
+# four optimizer updates. The full-pool reference deliberately remains full.
+matched_effective_supervised_tokens: 256
+fixed_optimizer_steps: 4
+training_seed: 17
+num_train_epochs: 1
+learning_rate: 2.0e-5
+max_length: 512
+training_micro_batch_size: 4
+gradient_accumulation_steps: 1
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+evaluation_batch_size: 8
+
+# Frozen before reading full-reference utilities. These are the same weights
+# used by coverage-quality selection and define the no-training content arm.
+content_static_weights:
+  facility: 1.0
+  obligation: 1.5
+  quality_fidelity: 1.0
+  source_coverage: 0.5
+
+quantization:
+  load_in_4bit: true
+  quant_type: nf4
+  compute_dtype: float16
+  use_double_quant: true

@@ -1,0 +1,24 @@
+schema_version: capability-blueprint-v1
+benchmark_id: medmcqa-cll-proxy-v1
+test_items_included: false
+source: High-level capability labels derived once during locked MedMCQA proxy curation.
+capabilities:
+- capability_id: diagnosis_and_differential
+  description: Recognize CLL/SLL and distinguish it from related leukemias and lymphomas.
+  weight: 1.0
+- capability_id: pathology_and_immunophenotype
+  description: Apply morphology, lineage, immunophenotype, and laboratory features
+    of CLL/SLL.
+  weight: 1.0
+- capability_id: complications
+  description: Identify immune, infectious, metabolic, and secondary-malignancy complications.
+  weight: 1.0
+- capability_id: prognosis_and_transformation
+  description: Interpret prognostic factors and recognize Richter transformation.
+  weight: 1.0
+- capability_id: treatment_indication
+  description: Decide when observation or initiation of treatment is appropriate.
+  weight: 1.0
+- capability_id: treatment_selection
+  description: Select and sequence CLL/SLL therapies under disease and patient constraints.
+  weight: 1.0

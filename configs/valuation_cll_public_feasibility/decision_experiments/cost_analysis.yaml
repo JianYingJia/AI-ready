@@ -1,0 +1,19 @@
+schema_version: cost-analysis-config-v1
+proxy_required_stages:
+  - source_scan
+  - parsing
+  - semantic_extraction
+  - proxy_selection
+  - generation
+  - quality_control
+  - training
+  - evaluation
+reference_required_stages:
+  - source_scan
+  - parsing
+  - semantic_extraction
+  - generation
+  - quality_control
+  - training
+  - evaluation
+shared_event_allocation: equal_across_batches

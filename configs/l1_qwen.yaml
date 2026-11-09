@@ -1,0 +1,38 @@
+input_dir: ../demos/documents
+output_dir: ../outputs/demo_qwen
+cache_dir: ../.cache
+parsing:
+  backend: auto
+  complex_pdf_backend: marker
+  marker_mode: fast
+  ocr: true
+  chunker: hybrid
+  max_tokens: 768
+  sliding_window_units: 0
+registry:
+  metadata_file: document_metadata.yaml
+  default_permissions: [research]
+embedding:
+  model_name: Qwen/Qwen3-Embedding-0.6B
+  family: qwen
+  device: auto
+  max_seq_length: 1024
+  batch_size: 8
+  query_instruction: 'Given a web search query, retrieve relevant passages that answer the query'
+cleaning:
+  recipe: data_juicer/l1_clean.yaml
+  near_duplicates: true
+clustering:
+  backend: bertopic
+  min_cluster_size: 3
+  min_samples: 2
+l2:
+  enabled: true
+  selection_budget: 20
+  selector: facility_location
+storage:
+  parquet_compression: zstd
+  create_duckdb: true
+  create_snapshot: true
+  mlflow_enabled: true
+  mlflow_experiment: ai-ready-benchmark

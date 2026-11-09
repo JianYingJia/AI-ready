@@ -1,0 +1,10 @@
+# Data-Juicer process-list syntax. No in-house text filters or dedup algorithms.
+# The adapter runs these OPs with num_proc=1 for Windows and records every drop.
+process:
+  - fix_unicode_mapper: {}
+  - whitespace_normalization_mapper: {}
+  - text_length_filter:
+      min_len: 1
+      max_len: 1000000
+# Exact dedup uses DocumentDeduplicator after these steps; its key includes headings.
+# MinHash is run separately in flag-only mode: a one-digit change may be critical.

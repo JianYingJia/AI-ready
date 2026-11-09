@@ -1,0 +1,6 @@
+profile_id: qwen2.5-7b-cll-m0-v1
+benchmark_id: medmcqa-cll-proxy-v1
+model_id: Qwen/Qwen2.5-7B-Instruct
+model_revision: <REPLACE_WITH_IMMUTABLE_MODEL_REVISION>
+checkpoint_sha256: <REPLACE_WITH_64_HEX_CHECKPOINT_DIGEST>
+probe_set_id: cll-independent-capability-probes-v1

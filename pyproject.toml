@@ -1,0 +1,67 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-ready-benchmark"
+version = "0.1.0"
+description = "Evidence-preserving document processing and benchmark-conditioned data valuation."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "py-data-juicer==1.5.5",
+    "ray>=2.51,<3",
+    "docling[rapidocr]==2.126.0",
+    "marker-pdf==2.0.0",
+    "pymupdf>=1.26,<2",
+    "python-docx>=1.2,<2",
+    "beautifulsoup4>=4.15,<5",
+    "sentence-transformers==5.7.0",
+    "transformers>=5.12.1,<6",
+    "torch==2.8.0",
+    "torchvision==0.23.0",
+    "faiss-cpu>=1.12,<2",
+    "hdbscan==0.8.44",
+    "bertopic==0.17.4",
+    "numpy>=1.26.4,<3",
+    "scikit-learn>=1.6,<2",
+    "scipy>=1.15,<2",
+    "pydantic>=2.10,<3",
+    "pyyaml>=6,<7",
+    "ftfy>=6,<7",
+    "jieba>=0.42.1,<1",
+    "pyarrow==25.0.1",
+    "duckdb==1.5.5",
+    "mlflow-skinny==3.16.0",
+    "sqlalchemy==2.0.52",
+    "alembic==1.19.2",
+    "simhash==2.1.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "black==25.1.0", "isort==5.12.0", "flake8==6.1.0", "flake8-pyproject"]
+experiments = ["accelerate>=1.14,<2", "bitsandbytes==0.47.0", "peft>=0.21,<0.22"]
+
+[project.scripts]
+ai-ready = "ai_ready.tools.process_data:main"
+ai-ready-value = "ai_ready.valuation.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ai_ready"]
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "E501", "W503"]
+per-file-ignores = ["*/__init__.py:F401"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["integration: uses real model weights or OCR models"]

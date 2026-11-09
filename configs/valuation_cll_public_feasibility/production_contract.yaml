@@ -1,0 +1,126 @@
+schema_version: production-contract-v2
+contract_id: cll-public-proxy-feasibility
+version: '2026-09-20'
+reference_policy:
+  traversal: full
+  uses_proxy_selector: false
+  run_all_batches: true
+  low_yield_policy: record_and_continue
+  allow_sample_duplication: false
+  allow_batch_specific_quality_thresholds: false
+generation:
+  proxy:
+    generator: coverage_guided_sft
+    revision: coverage-guided-sft-v1
+    implementation_sha256: 0d7a587b325fbbfa7da79dda5a9d934b57128499d30c356bebd0369b8222cb00
+    teacher_model: qwen2.5:1.5b-instruct
+    teacher_revision: 65ec06548149b04c096a120e4a6da9d4017ea809c91734ea5631e89f96ddc57b
+    prompt_sha256: 74f74d93931926aa94b4335868f942fd38e0a92fd661abf706708edda8edb508
+    quality_gate_sha256: 1f2c4d59049799df0649fa06758b5cc7b8223699df3e93363b9e066b6e2f9e8f
+    temperature: 0.0
+    max_retries: 3
+    task_quotas:
+      grounded_qa: 1
+      conditional_judgment: 1
+      clinical_vignette: 1
+    preserve_source_evidence: true
+  reference:
+    generator: fully_open_meditron
+    revision: arxiv-2605.16215v2-example-binding
+    teacher_model: openai/gpt-oss-120b
+    teacher_revision: example-pinned-teacher-revision
+    prompt_sha256: 0afcd0f5f294970af5d8fefb01c71570614b02f373d9e0dfb7b536572c51d10c
+    quality_gate_sha256: c1e242802f4b901b0bea624a23836a8213203b26e8a6f95233f2258a1c6f5cee
+    temperature: 0.7
+    max_retries: 8
+    task_quotas:
+      grounded_qa: 1
+      conditional_judgment: 1
+      clinical_vignette: 1
+    preserve_source_evidence: true
+training:
+  objective: sft
+  update_method: lora
+  trainer: llama_factory
+  trainer_revision: v0.9.5
+  base_model: Qwen/Qwen2.5-7B-Instruct
+  base_model_revision: a09a35458c702b33eeacc393d103063234e8bc28
+  tokenizer_revision: a09a35458c702b33eeacc393d103063234e8bc28
+  chat_template_sha256: dffef6002d80ea35fb7c1315d7505c3c8c6a215030f91157c0a15785dbcca3cd
+  effective_train_tokens: 1000000
+  response_only_loss: true
+  seeds:
+  - 17
+  - 29
+  - 43
+  hyperparameters:
+    learning_rate: 2.0e-05
+    lora_rank: 16
+    lora_alpha: 32.0
+    lora_dropout: 0.05
+    lora_target: all
+    max_length: 2048
+    packing: true
+    neat_packing: true
+    num_train_epochs: 1.0
+    lr_scheduler_type: cosine
+    warmup_ratio: 0.1
+    weight_decay: 0.0
+    max_grad_norm: 1.0
+  background_mix_ratio: 0.0
+benchmark:
+  benchmark_id: medmcqa-cll-proxy-v1
+  version: medmcqa-91c6572c4540-cll-proxy-v1
+  capability_blueprint_sha256: 00f9dc90d8d6e4cf5cc79e81515ced97f1660cee387635c7d6337d5f2dd885e3
+  test_manifest_sha256: 36ada151de2468e79bbcb52086ebac71e92fb95150995100dc58d7dd1656724d
+  evaluation_engine: opencompass
+  evaluation_engine_revision: example-pinned-opencompass-revision
+  primary_metric: accuracy
+  higher_is_better: true
+  generation_can_access_test_items: false
+  decoding:
+    temperature: 0.0
+    top_p: 1.0
+    max_new_tokens: 1024
+budget:
+  value_target: fixed_budget
+  generation_token_cap: 5000000
+  training_token_cap: 1000000
+  cost_cap: 10000.0
+  stop_rule: Stop at the fixed cap; record low yield without duplicating samples.
+tools:
+- stage: preprocess
+  adapter: data_juicer
+  repository: https://github.com/datajuicer/data-juicer
+  revision: data-juicer-1.5.5
+  config_sha256: 0610e661715c24c05468e16f81abffe6bbf52b939660edf5036fb1013516c8a3
+  scope: batch
+  argv: []
+- stage: generate
+  adapter: fully_open_meditron
+  repository: https://github.com/EPFLiGHT/FullyOpenMeditron
+  revision: arxiv-2605.16215v2-example-binding
+  config_sha256: edefb011ecb2aaeb287acb877f0abbde43dd3fe3feb293ccb0dd7d3d849073a7
+  scope: batch
+  argv: []
+- stage: quality_gate
+  adapter: local_medical_quality_gate
+  repository: local://ai-ready-benchmark/examples/valuation_cll/quality_gate_v1.yaml
+  revision: example-v1
+  config_sha256: c1e242802f4b901b0bea624a23836a8213203b26e8a6f95233f2258a1c6f5cee
+  scope: batch
+  argv: []
+- stage: train
+  adapter: llama_factory
+  repository: https://github.com/hiyouga/LlamaFactory
+  revision: v0.9.5
+  config_sha256: a9a4093cdf0c6c7f0b85b27a9911665c3c24bb576207072d711d22e39927e454
+  scope: trial
+  argv: []
+- stage: evaluate
+  adapter: opencompass
+  repository: https://github.com/open-compass/opencompass
+  revision: example-pinned-opencompass-revision
+  config_sha256: 1db43ca9e1aba7095aad104122e46092f29ccf978596b3b8ba83cbf6eec2833e
+  scope: trial
+  argv: []

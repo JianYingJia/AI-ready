@@ -1,0 +1,33 @@
+# Publish only source code, runnable configuration, and the project README.
+# Keep directories visible so the file allowlist applies at every depth.
+*
+!*/
+
+# Source code and scripts.
+!*.py
+!*.ps1
+!*.slurm
+
+# Configuration and dependency declarations needed to run the code.
+!*.yaml
+!*.yml
+!*.toml
+!*.lock
+
+# Repository metadata and the only documentation file to publish.
+!/.gitignore
+!/README.md
+
+# Private data, examples, documents, and generated artifacts.
+/data/
+/inputs/
+/docs/
+/demos/
+/examples/
+/outputs/
+**/generated_output/
+**/__pycache__/
+**/.pytest_cache/
+**/.cache/
+**/.venv/
+/.vscode/

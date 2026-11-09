@@ -1,0 +1,21 @@
+sampling_fractions:
+  - 0.25
+  - 0.35
+  - 0.50
+  - 0.65
+  - 0.80
+seeds:
+  - 17
+  - 31
+  - 42
+  - 73
+  - 101
+stratum_attributes:
+  - knowledge_type
+  - quality_bucket
+  - benchmark_relevance
+  - source_scope
+allow_target_expansion: true
+minimum_capabilities_with_variance: 2
+maximum_unchanged_jaccard: 0.95
+minimum_changed_trial_fraction: 0.50
