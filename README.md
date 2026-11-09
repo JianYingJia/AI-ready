@@ -1,4 +1,4 @@
-# CQ-Proxy: Task-Conditioned Valuation of Raw Document Batches
+# Value Before Full Processing: Task-Conditioned Valuation of Raw Document Batches via Trainable Proxy Datasets
 
 This repository contains the research code for **“Value Before Full Processing: Task-Conditioned Valuation of Raw Document Batches via Trainable Proxy Datasets.”** The study asks which raw document batch is worth fully processing for a target task. CQ-Proxy estimates that value with a smaller, source-grounded trainable dataset before committing to full example generation, quality control, and training.
 
